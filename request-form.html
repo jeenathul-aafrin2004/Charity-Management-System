@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Submit Help Request</title>
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCw_7hQeQM3tXsRb3z7SKlW1ARKJL5buGQ",
+      authDomain: "edudonate-e5bc4.firebaseapp.com",
+      projectId: "edudonate-e5bc4",
+      storageBucket: "edudonate-e5bc4.appspot.com",
+      messagingSenderId: "710950970152",
+      appId: "1:710950970152:web:583eec98550dec8728661d",
+      measurementId: "G-QNZ692FRRM"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+  </script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Segoe UI', sans-serif;
+    }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
+
+    body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(to right, #fefefe, #eeeeee);
+    }
+
+    form {
+      width: 420px;
+      max-height: 95vh;
+      background-color: #ffffff;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+    }
+
+    form::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    form::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.3);
+      border-radius: 3px;
+    }
+
+    h2 {
+      font-size: 20px;
+      text-align: center;
+      margin-bottom: 16px;
+      font-weight: bold;
+    }
+
+    .input-container {
+      position: relative;
+      margin-bottom: 14px;
+    }
+
+    .input-container input,
+    .input-container textarea {
+      width: 100%;
+      padding: 10px 0 6px;
+      border: none;
+      border-bottom: 2px solid #000;
+      background: transparent;
+      font-size: 14px;
+      outline: none;
+    }
+
+    .input-container label {
+      position: absolute;
+      top: 10px;
+      left: 0;
+      font-size: 12px;
+      color: #000;
+      pointer-events: none;
+      transition: 0.2s;
+    }
+
+    .input-container input:focus + label,
+    .input-container input:not(:placeholder-shown) + label,
+    .input-container textarea:focus + label,
+    .input-container textarea:not(:placeholder-shown) + label {
+      top: -12px;
+      font-size: 10px;
+      color: #333;
+    }
+
+    button {
+      margin-top: 10px;
+      padding: 10px;
+      background: transparent;
+      border: 2px solid #000;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    button:hover {
+      background: #000;
+      color: #fff;
+    }
+
+    .message {
+      font-size: 13px;
+      color: green;
+      text-align: center;
+      margin-top: 6px;
+    }
+
+    .back-button {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 10px 20px;
+      background: transparent;
+      border: 2px solid #000;
+      border-radius: 6px;
+      font-size: 14px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: 0.3s;
+      z-index: 10;
+    }
+
+    .back-button:hover {
+      background: #000;
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+
+  <form id="requestForm">
+    <h2>SUBMIT REQUEST</h2>
+
+    <div class="input-container">
+      <input type="text" id="studentName" placeholder=" " required />
+      <label>STUDENT NAME</label>
+    </div>
+
+    <div class="input-container">
+      <input type="text" id="orgName" placeholder=" " required />
+      <label>ORGANIZATION</label>
+    </div>
+
+    <div class="input-container">
+      <input type="text" id="guardianName" placeholder=" " required />
+      <label>GUARDIAN NAME</label>
+    </div>
+
+    <div class="input-container">
+      <input type="text" id="phone" placeholder=" " required />
+      <label>PHONE NUMBER</label>
+    </div>
+
+    <div class="input-container">
+      <input type="email" id="email" placeholder=" " required />
+      <label>STUDENT EMAIL</label>
+    </div>
+
+    <div class="input-container">
+      <input type="text" id="title" required placeholder=" " />
+      <label>REQUEST TITLE</label>
+    </div>
+
+    <div class="input-container">
+      <textarea id="description" required rows="2" placeholder=" "></textarea>
+      <label>DESCRIPTION</label>
+    </div>
+
+    <div class="input-container">
+      <input type="number" id="amount" required placeholder=" " />
+      <label>AMOUNT (INR)</label>
+    </div>
+
+    <button type="submit">SUBMIT</button>
+    <p class="message" id="message"></p>
+  </form>
+
+  <!-- BACK BUTTON -->
+  <button class="back-button" onclick="goBackToDonorProfile()">BACK</button>
+
+  <script>
+    let currentUser = null;
+    let donorId = null;
+
+    // Extract donor UID from URL
+    function getQueryParam(param) {
+      const urlParams = new URLSearchParams(window.location.search);
+      return urlParams.get(param);
+    }
+
+    donorId = getQueryParam("donor_id");
+
+    function goBackToDonorProfile() {
+      if (donorId) {
+        window.location.href = `student-donorprofile.html?uid=${donorId}`;
+      } else {
+        alert("Donor information not found.");
+      }
+    }
+
+    auth.onAuthStateChanged((user) => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+      currentUser = user;
+    });
+
+    document.getElementById("requestForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      if (!currentUser) {
+        alert("User not authenticated.");
+        return;
+      }
+
+      if (!donorId) {
+        alert("Donor not found in URL.");
+        return;
+      }
+
+      const title = document.getElementById("title").value;
+      const description = document.getElementById("description").value;
+      const amount = parseInt(document.getElementById("amount").value);
+      const fullName = document.getElementById("studentName").value;
+      const orgName = document.getElementById("orgName").value;
+      const guardianName = document.getElementById("guardianName").value;
+      const phone = document.getElementById("phone").value;
+      const email = document.getElementById("email").value;
+
+      db.collection("requests").add({
+        title,
+        description,
+        amount,
+        status: "open",
+        requester_email: currentUser.email,
+        requester_id: currentUser.uid,
+        fullName,
+        orgName,
+        guardianName,
+        phone,
+        email,
+        donor_id: donorId,
+        timestamp: firebase.firestore.FieldValue.serverTimestamp()
+      })
+      .then((docRef) => {
+        return docRef.update({ request_id: docRef.id });
+      })
+      .then(() => {
+        document.getElementById("message").innerText = "✅ Request submitted successfully!";
+        document.getElementById("requestForm").reset();
+      })
+      .catch((error) => {
+        console.error("Error submitting request:", error);
+        document.getElementById("message").innerText = "❌ Failed to submit request.";
+      });
+    });
+  </script>
+
+</body>
+</html>

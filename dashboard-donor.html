@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Donor Dashboard - HopeNest</title>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore-compat.js"></script>
+
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Source Sans Pro', sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: #f0f2f5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .navbar {
+      background: linear-gradient(to right, #ff5f7e, #43647e);
+      padding: 12px 0;
+      width: 100%;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .navbar-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 30px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      color: white;
+      flex: 1;
+      text-align: left;
+    }
+
+    .nav-links {
+      list-style: none;
+      display: flex;
+      gap: 25px;
+      margin: 0;
+      padding: 0;
+      justify-content: flex-end;
+      flex: 1;
+      text-align: right;
+    }
+
+    .nav-links li {
+      display: inline;
+    }
+
+    .nav-links li a {
+      text-decoration: none;
+      color: white;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .nav-links li a:hover {
+      color: #ffdede;
+    }
+
+    .welcome-box {
+      background: linear-gradient(to right, #d3cce3, #b487f3);
+      padding: 25px 30px;
+      width: 90%;
+      max-width: 600px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+      text-align: center;
+      margin: 40px auto 30px;
+    }
+
+    .welcome-box h2 {
+      margin: 0 0 10px;
+      color: #333;
+      font-weight: 400;
+    }
+
+    .btn-outline-animated {
+      position: relative;
+      display: inline-block;
+      padding: 12px 30px;
+      margin: 8px 10px;
+      font-size: 16px;
+      font-weight: bold;
+      color: #fff;
+      text-transform: uppercase;
+      text-align: center;
+      border: none;
+      background-color: transparent;
+      cursor: pointer;
+      transition: 0.3s;
+      z-index: 1;
+    }
+
+    .btn-outline-animated::before,
+    .btn-outline-animated::after {
+      content: "";
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border: 2px solid;
+      transition: 0.5s;
+    }
+
+    .btn-outline-animated::before {
+      top: 0;
+      left: 0;
+      border-color: #fff transparent transparent #fff;
+    }
+
+    .btn-outline-animated::after {
+      bottom: 0;
+      right: 0;
+      border-color: transparent #fff #fff transparent;
+    }
+
+    .btn-outline-animated:hover::before,
+    .btn-outline-animated:hover::after {
+      width: 100%;
+      height: 100%;
+      border-color: #fff;
+    }
+
+    .btn-outline-small {
+      font-size: 14px;
+      padding: 8px 20px;
+      margin-top: 10px;
+    }
+
+    .btn-history {
+      background-color: #45568f;
+    }
+
+    .btn-history:hover {
+      background-color: #f798e6;
+    }
+
+    .logout {
+      background-color: #833d79;
+    }
+
+    .logout:hover {
+      background-color: #b65264;
+    }
+
+    .requests-section {
+      width: 90%;
+      max-width: 650px;
+    }
+
+    .card {
+      background: white;
+      padding: 18px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.07);
+      position: relative;
+      transition: transform 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+    }
+
+    .student-info {
+      background: #eef;
+      padding: 10px;
+      border-radius: 6px;
+      font-size: 0.9em;
+      margin-top: 10px;
+    }
+
+    .donation-box {
+      margin-top: 10px;
+      display: none;
+    }
+
+    input[type="number"] {
+      padding: 10px;
+      width: 60%;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin-right: 10px;
+    }
+
+    .donated-label {
+      color: green;
+      font-weight: bold;
+      margin-top: 8px;
+    }
+
+    /* ✅ Back Button */
+    .back-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 10px 20px;
+      background: transparent;
+      border: 2px solid #333;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 14px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .back-btn:hover {
+      background-color: #333;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <div class="navbar">
+    <div class="navbar-container">
+      <div class="logo">HopeNest</div>
+      <ul class="nav-links">
+        <li><a href="home.html">Home</a></li>
+        <li><a href="aboutus.html">About</a></li>
+        <li><a href="login1.html">Login</a></li>
+        <li><a href="feature.html">Features</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Welcome Box -->
+  <div class="welcome-box">
+    <h2 id="greeting">Welcome, </h2>
+    <p>User Type: <strong>Donor</strong></p>
+    <a href="history.html" class="btn-outline-animated btn-history">View Donation History</a>
+    <button onclick="logout()" class="btn-outline-animated logout">🚪 Logout</button>
+  </div>
+
+  <!-- Requests Section -->
+  <div class="requests-section">
+    <h3>📚 Open Requests</h3>
+    <div id="requests-list"></div>
+  </div>
+
+  <!-- ✅ Back Button -->
+  <button class="back-btn" onclick="window.location.href='profile.html'">← Back</button>
+
+  <!-- Firebase & Logic -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCw_7hQeQM3tXsRb3z7SKlW1ARKJL5buGQ",
+      authDomain: "edudonate-e5bc4.firebaseapp.com",
+      projectId: "edudonate-e5bc4",
+      storageBucket: "edudonate-e5bc4.appspot.com",
+      messagingSenderId: "710950970152",
+      appId: "1:710950970152:web:583eec98550dec8728661d"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+
+    let currentUID = null;
+
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) {
+        window.location.href = "login1.html";
+        return;
+      }
+
+      currentUID = user.uid;
+      const userDoc = await db.collection("users").doc(user.uid).get();
+      const userData = userDoc.data();
+
+      if (userData && userData.fullName) {
+        document.getElementById("greeting").innerText = `Welcome, ${userData.fullName}`;
+      } else {
+        document.getElementById("greeting").innerText = `Welcome, Donor`;
+      }
+
+      db.collection("requests").where("status", "==", "open")
+        .onSnapshot(snapshot => {
+          const container = document.getElementById("requests-list");
+          container.innerHTML = "";
+
+          if (snapshot.empty) {
+            container.innerHTML = `<p>No open requests found.</p>`;
+            return;
+          }
+
+          snapshot.forEach(doc => {
+            const request = doc.data();
+            const requestId = doc.id;
+
+            const card = document.createElement("div");
+            card.className = "card";
+            card.id = `card-${requestId}`;
+
+            card.innerHTML = `
+              <h4><strong>📌 Title:</strong> ${request.title}</h4>
+              <p><strong>📝 Reason:</strong> ${request.description}</p>
+              <p><strong>💰 Amount Needed:</strong> ₹${request.amount}</p>
+              <div class="student-info">
+                👤 <strong>Name:</strong> ${request.fullName || "N/A"}<br>
+                📧 <strong>Email:</strong> ${request.requester_email || "N/A"}<br>
+                📞 <strong>Phone:</strong> ${request.phone || "N/A"}<br>
+                🏫 <strong>Organization:</strong> ${request.orgName || "N/A"}
+              </div>
+              <div class="donation-box" id="box-${requestId}">
+                <input type="number" id="input-${requestId}" placeholder="Enter amount to donate" />
+                <button class="btn-outline-animated btn-outline-small btn-history" onclick="submitDonation('${requestId}', '${user.email}', '${request.requester_email}', ${request.amount})">Confirm Donate</button>
+              </div>
+              <button class="btn-outline-animated btn-outline-small btn-history" onclick="toggleDonationBox('${requestId}')">Donate</button>
+              <a class="btn-outline-animated btn-outline-small logout" href="donor-studentprofile.html?uid=${request.requester_id}">View Profile</a>
+            `;
+
+            container.appendChild(card);
+          });
+        });
+    });
+
+    function toggleDonationBox(id) {
+      const box = document.getElementById(`box-${id}`);
+      box.style.display = box.style.display === "none" ? "block" : "none";
+    }
+
+    async function submitDonation(requestId, donorEmail, requesterEmail, totalAmount) {
+      const input = document.getElementById(`input-${requestId}`);
+      const amount = parseFloat(input.value);
+
+      if (isNaN(amount) || amount <= 0) {
+        alert("Please enter a valid amount.");
+        return;
+      }
+
+      try {
+        await db.collection("donations").add({
+          donor_email: donorEmail,
+          request_id: requestId,
+          amount: amount,
+          timestamp: firebase.firestore.FieldValue.serverTimestamp()
+        });
+
+        const requestRef = db.collection("requests").doc(requestId);
+        await requestRef.update({
+          donated_amount: firebase.firestore.FieldValue.increment(amount)
+        });
+
+        const updatedDoc = await requestRef.get();
+        const updatedData = updatedDoc.data();
+        const remaining = updatedData.amount - (updatedData.donated_amount || 0);
+
+        if (remaining <= 0) {
+          await requestRef.update({ status: "donated" });
+          const label = document.createElement("div");
+          label.className = "donated-label";
+          label.innerText = "✅ Donated Successfully";
+          document.getElementById(`card-${requestId}`).appendChild(label);
+        }
+
+        input.value = "";
+        alert("✅ Donated successfully!");
+      } catch (err) {
+        console.error("Donation failed at some step:", err);
+        alert("⚠️ Donation was recorded, but an error occurred. Please check your dashboard.");
+      }
+    }
+
+    function logout() {
+      auth.signOut().then(() => {
+        window.location.href = "login1.html";
+      });
+    }
+  </script>
+</body>
+</html>

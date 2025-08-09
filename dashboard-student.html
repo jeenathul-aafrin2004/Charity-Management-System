@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Dashboard - HopeNest</title>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore-compat.js"></script>
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <!-- Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Source+Sans+Pro:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCw_7hQeQM3tXsRb3z7SKlW1ARKJL5buGQ",
+      authDomain: "edudonate-e5bc4.firebaseapp.com",
+      projectId: "edudonate-e5bc4",
+      storageBucket: "edudonate-e5bc4.appspot.com",
+      messagingSenderId: "710950970152",
+      appId: "1:710950970152:web:583eec98550dec8728661d",
+      measurementId: "G-QNZ692FRRM"
+    };
+
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+  </script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Source Sans Pro', sans-serif;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      background: #f0f2f5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .navbar {
+      background: linear-gradient(to right, #ff5f7e, #43647e);
+      padding: 12px 0;
+      width: 100%;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+
+    .navbar-container {
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 0 30px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .logo {
+      font-size: 24px;
+      font-weight: bold;
+      color: white;
+    }
+
+    .nav-links {
+      list-style: none;
+      display: flex;
+      gap: 25px;
+    }
+
+    .nav-links li a {
+      text-decoration: none;
+      color: white;
+      font-weight: bold;
+      transition: 0.3s;
+    }
+
+    .nav-links li a:hover {
+      color: #ffdede;
+    }
+
+    .top-right-button {
+      width: 100%;
+      max-width: 1200px;
+      display: flex;
+      justify-content: flex-end;
+      padding: 10px 30px 0;
+    }
+
+    .view-donor-btn {
+      padding: 10px 20px;
+      background-color: #5e60ce;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+      text-decoration: none;
+    }
+
+    .view-donor-btn:hover {
+      background-color: #4a4ef4;
+    }
+
+    .welcome-box {
+      background: linear-gradient(to right, #e0c3fc, #8ec5fc);
+      padding: 25px 30px;
+      width: 90%;
+      max-width: 600px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+      text-align: center;
+      margin: 30px auto;
+    }
+
+    .welcome-box h2 {
+      margin: 0 0 10px;
+      color: #333;
+      font-weight: 400;
+    }
+
+    .logout {
+      background-color: #833d79;
+      color: white;
+      border: none;
+      padding: 12px 30px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 15px;
+      transition: background-color 0.3s;
+    }
+
+    .logout:hover {
+      background-color: #b65264;
+    }
+
+    .requests-section {
+      width: 90%;
+      max-width: 650px;
+    }
+
+    h3 {
+      margin-bottom: 15px;
+      color: #333;
+      font-weight: 600;
+    }
+
+    .card {
+      background: white;
+      padding: 18px;
+      margin-bottom: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.07);
+      position: relative;
+      transition: transform 0.2s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-5px);
+    }
+
+    .tick {
+      position: absolute;
+      top: 12px;
+      right: 45px;
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      background-color: white;
+      color: #4CAF50;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      animation: tickGlow 1.5s infinite ease-in-out;
+      box-shadow: 0 0 8px #4CAF50;
+    }
+
+    .tick svg {
+      width: 20px;
+      height: 20px;
+    }
+
+    @keyframes tickGlow {
+      0%, 100% {
+        box-shadow: 0 0 6px #4CAF50;
+        transform: scale(1);
+      }
+      50% {
+        box-shadow: 0 0 15px #4CAF50;
+        transform: scale(1.2);
+      }
+    }
+
+    .delete-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      width: 26px;
+      height: 26px;
+      border: none;
+      border-radius: 50%;
+      background-color: #ef4444;
+      color: white;
+      cursor: pointer;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      transition: transform 0.2s;
+      box-shadow: 0 0 5px #ef4444;
+    }
+
+    .delete-btn:hover {
+      transform: rotate(-10deg) scale(1.2);
+      background-color: #dc2626;
+    }
+
+    .donor-box {
+      margin-top: 15px;
+      padding: 12px;
+      border: 1px dashed #4caf50;
+      background: #f0fff0;
+      border-radius: 8px;
+    }
+
+    /* ✅ Back Button */
+    .back-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      padding: 10px 20px;
+      background: transparent;
+      border: 2px solid #333;
+      border-radius: 6px;
+      font-weight: bold;
+      font-size: 14px;
+      cursor: pointer;
+      transition: 0.3s;
+    }
+
+    .back-btn:hover {
+      background-color: #333;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navbar -->
+  <div class="navbar">
+    <div class="navbar-container">
+      <div class="logo">HopeNest</div>
+      <ul class="nav-links">
+        <li><a href="index.html">Home</a></li>
+        <li><a href="aboutus.html">About</a></li>
+        <li><a href="feature.html">Feature</a></li>
+        <li><a href="login1.html">Login</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- View Donor Button -->
+  <div class="top-right-button">
+    <a href="donorslist.html" class="view-donor-btn">👤 View Donor Profiles</a>
+  </div>
+
+  <!-- Welcome Box -->
+  <div class="welcome-box">
+    <h2 id="greeting">Welcome, </h2>
+    <p>User Type: <strong>Student</strong></p>
+    <button onclick="handleLogout()" class="logout">Logout</button>
+  </div>
+
+  <!-- Request Section -->
+  <div class="requests-section">
+    <h3>📋 My Requests</h3>
+    <div id="my-requests"></div>
+  </div>
+
+  <!-- ✅ Back Button -->
+  <button class="back-btn" onclick="window.location.href='studentprofile.html'">← Back</button>
+
+  <script>
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        const uid = user.uid;
+
+        db.collection("users").doc(uid).get().then(doc => {
+          if (doc.exists && doc.data().fullName) {
+            document.getElementById("greeting").innerText = `Welcome, ${doc.data().fullName}`;
+          } else {
+            document.getElementById("greeting").innerText = `Welcome, ${user.email}`;
+          }
+        });
+
+        db.collection("requests").where("requester_email", "==", user.email)
+          .onSnapshot(snapshot => {
+            const container = document.getElementById("my-requests");
+            container.innerHTML = "";
+
+            if (snapshot.empty) {
+              container.innerHTML = "<p>No requests submitted yet.</p>";
+              return;
+            }
+
+            snapshot.forEach(doc => {
+              const data = doc.data();
+              const tickMark = data.status.toLowerCase() === "donated" ? `<div class="tick"><i data-lucide="check-circle"></i></div>` : '';
+              const requestId = doc.id;
+
+              container.innerHTML += `
+                <div class="card">
+                  <button class="delete-btn" onclick="deleteRequest('${requestId}')"><i data-lucide="trash-2"></i></button>
+                  ${tickMark}
+                  <h4><strong>Title:</strong> ${data.title}</h4>
+                  <p><strong>Reason:</strong> ${data.description}</p>
+                  <p><strong>Amount Requested:</strong> ₹${data.amount}</p>
+                  <p><strong>Status:</strong> ${data.status}</p>
+                  ${data.status.toLowerCase() === "donated" ? `
+                    <div class="donor-box">
+                      <h5>🎁 Donor Details</h5>
+                      <p><strong>Name:</strong> ${data.fullName || 'N/A'}</p>
+                      <p><strong>Phone:</strong> ${data.phone || 'N/A'}</p>
+                      <p><strong>Organization:</strong> ${data.orgName || 'N/A'}</p>
+                      <p><strong>Donated Amount:</strong> ₹${data.donated_amount || 'N/A'}</p>
+                    </div>` : ''}
+                </div>
+              `;
+            });
+
+            lucide.createIcons();
+          });
+      } else {
+        window.location.href = "login.html";
+      }
+    });
+
+    function deleteRequest(id) {
+      if (confirm("Are you sure you want to delete this request?")) {
+        db.collection("requests").doc(id).delete()
+          .then(() => alert("Request deleted successfully."))
+          .catch((error) => console.error("Error deleting request: ", error));
+      }
+    }
+
+    function handleLogout() {
+      auth.signOut().then(() => {
+        window.location.href = "login1.html";
+      });
+    }
+  </script>
+</body>
+</html>

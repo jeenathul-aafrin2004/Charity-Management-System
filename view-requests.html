@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>View Student Requests</title>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    // For Firebase JS SDK v7.20.0 and later, measurementId is optional
+const firebaseConfig = {
+  apiKey: "AIzaSyCw_7hQeQM3tXsRb3z7SKlW1ARKJL5buGQ",
+  authDomain: "edudonate-e5bc4.firebaseapp.com",
+  projectId: "edudonate-e5bc4",
+  storageBucket: "edudonate-e5bc4.firebasestorage.app",
+  messagingSenderId: "710950970152",
+  appId: "1:710950970152:web:583eec98550dec8728661d",
+  measurementId: "G-QNZ692FRRM"
+};
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+  </script>
+
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      background-color: #f2f2f2;
+    }
+
+    h2 {
+      color: #333;
+      text-align: center;
+    }
+
+    .request-card {
+      background: white;
+      padding: 20px;
+      margin: 15px auto;
+      max-width: 600px;
+      border-radius: 8px;
+      box-shadow: 0 0 8px rgba(0,0,0,0.1);
+    }
+
+    .request-card h3 {
+      margin: 0 0 10px;
+      color: #333;
+    }
+
+    .request-card p {
+      margin: 5px 0;
+    }
+
+    .btn {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 10px 15px;
+      background-color: #007bff;
+      color: white;
+      text-decoration: none;
+      border-radius: 5px;
+    }
+
+    .btn:hover {
+      background-color: #0056b3;
+    }
+
+    .logout-btn {
+      float: right;
+      margin-top: -40px;
+      background-color: #f44336;
+    }
+  </style>
+</head>
+<body>
+
+  <h2>🎓 Student Help Requests</h2>
+  <button class="btn logout-btn" onclick="logout()">Logout</button>
+
+  <div id="requestsContainer"></div>
+
+  <script>
+    auth.onAuthStateChanged(user => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      const container = document.getElementById("requestsContainer");
+
+      db.collection("requests")
+        .where("status", "==", "open")
+        .onSnapshot(snapshot => {
+          container.innerHTML = ""; // Clear previous
+          if (snapshot.empty) {
+            container.innerHTML = "<p>No open requests available.</p>";
+            return;
+          }
+
+          snapshot.forEach(doc => {
+            const data = doc.data();
+            container.innerHTML += `
+              <div class="request-card">
+                <h3>${data.title}</h3>
+                <p><strong>Amount Needed:</strong> ₹${data.amount}</p>
+<p><strong>Donated:</strong> ₹${data.donated_amount || 0}</p>
+${(data.donated_amount || 0) >= data.amount
+  ? '<p style="color:green;font-weight:bold;">✅ Fully Funded</p>'
+  : `<a class="btn" href="donate.html?id=${doc.id}">Donate</a>`}
+
+                
+              </div>
+            `;
+          });
+        });
+    });
+
+    function logout() {
+      auth.signOut().then(() => {
+        window.location.href = "index.html";
+      });
+    }
+  </script>
+
+</body>
+</html>

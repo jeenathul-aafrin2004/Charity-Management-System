@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Donation History</title>
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCw_7hQeQM3tXsRb3z7SKlW1ARKJL5buGQ",
+      authDomain: "edudonate-e5bc4.firebaseapp.com",
+      projectId: "edudonate-e5bc4",
+      storageBucket: "edudonate-e5bc4.firebasestorage.app",
+      messagingSenderId: "710950970152",
+      appId: "1:710950970152:web:583eec98550dec8728661d",
+      measurementId: "G-QNZ692FRRM"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+  </script>
+
+  <style>
+    * {
+      box-sizing: border-box;
+      font-family: 'Source Sans Pro', sans-serif;
+    }
+
+    body {
+      background: #f0f2f5;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    .history-box {
+      background: linear-gradient(to right, #89f7fe, #66a6ff);
+      padding: 25px 30px;
+      width: 90%;
+      max-width: 700px;
+      border-radius: 12px;
+      box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+      text-align: center;
+      margin-bottom: 30px;
+      color: #333;
+    }
+
+    .history-box h2 {
+      margin: 0 0 10px;
+      color: #fff;
+    }
+
+    .btn-outline-animated {
+      position: relative;
+      display: inline-block;
+      padding: 10px 25px;
+      margin: 12px 10px;
+      font-size: 14px;
+      font-weight: bold;
+      color: #fff;
+      text-transform: uppercase;
+      text-align: center;
+      border: none;
+      background-color: #5f6caf;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: 0.3s;
+      z-index: 1;
+    }
+
+    .btn-outline-animated::before,
+    .btn-outline-animated::after {
+      content: "";
+      position: absolute;
+      width: 20px;
+      height: 20px;
+      border: 2px solid;
+      transition: 0.5s;
+    }
+
+    .btn-outline-animated::before {
+      top: 0;
+      left: 0;
+      border-color: #fff transparent transparent #fff;
+    }
+
+    .btn-outline-animated::after {
+      bottom: 0;
+      right: 0;
+      border-color: transparent #fff #fff transparent;
+    }
+
+    .btn-outline-animated:hover::before,
+    .btn-outline-animated:hover::after {
+      width: 100%;
+      height: 100%;
+      border-color: #fff;
+    }
+
+    .back-btn {
+      background-color: #6a11cb;
+      background-image: linear-gradient(135deg, #b8498c 0%, #526991 100%);
+    }
+
+    .donation-card {
+      background: white;
+      padding: 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+      margin-bottom: 20px;
+      width: 100%;
+      max-width: 700px;
+      text-align: left;
+    }
+
+    .donation-card h4, .donation-card p {
+      margin: 8px 0;
+    }
+  </style>
+</head>
+<body>
+  <div class="history-box">
+    <h2>📜 Donation History</h2>
+    <p id="donor-name">Donor: <strong>Loading...</strong></p>
+    <a href="dashboard-donor.html" class="btn-outline-animated back-btn">⬅️ Back to Dashboard</a>
+  </div>
+
+  <div id="history-container" style="width: 90%; max-width: 700px;"></div>
+
+  <script>
+    auth.onAuthStateChanged(async user => {
+      if (!user) {
+        window.location.href = "login.html";
+        return;
+      }
+
+      const historyContainer = document.getElementById("history-container");
+
+      // Fetch donor name
+      const userDoc = await db.collection("users").doc(user.uid).get();
+      const userData = userDoc.data();
+      document.getElementById("donor-name").innerHTML = `Donor: <strong>${userData.fullName || user.email}</strong>`;
+
+      try {
+        const snapshot = await db.collection("donations")
+          .where("donor_email", "==", user.email)
+          .orderBy("timestamp", "desc")
+          .get();
+
+        if (snapshot.empty) {
+          historyContainer.innerHTML = "<p>No donations made yet.</p>";
+          return;
+        }
+
+        for (const doc of snapshot.docs) {
+          const donation = doc.data();
+          const requestId = donation.request_id;
+
+          try {
+            const requestDoc = await db.collection("requests").doc(requestId).get();
+            const requestData = requestDoc.exists ? requestDoc.data() : {};
+
+            const timestamp = donation.timestamp?.toDate().toLocaleString() || "N/A";
+
+            const card = document.createElement("div");
+            card.className = "donation-card";
+
+            card.innerHTML = `
+              <h4>📌 <strong>Title:</strong> ${requestData.title || 'N/A'}</h4>
+              <p><strong>Amount Donated:</strong> ₹${donation.amount}</p>
+              <p><strong>Date:</strong> ${timestamp}</p>
+              <p><strong>Student:</strong> ${requestData.fullName || 'N/A'}</p>
+              <p><strong>Email:</strong> ${requestData.requester_email || 'N/A'}</p>
+              <p><strong>Phone:</strong> ${requestData.phone || 'N/A'}</p>
+              <p><strong>Organization:</strong> ${requestData.orgName || 'N/A'}</p>
+            `;
+
+            historyContainer.appendChild(card);
+          } catch (error) {
+            console.error("Failed to fetch request info:", error);
+          }
+        }
+
+      } catch (error) {
+        console.error("Error fetching donation history:", error);
+        historyContainer.innerHTML = "<p>Error loading history. Try again later.</p>";
+      }
+    });
+  </script>
+</body>
+</html>

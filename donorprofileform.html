@@ -1,0 +1,313 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Donor Profile Form</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #a8edea, #fed6e3);
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    .form-wrapper {
+      display: flex;
+      width: 90%;
+      max-width: 1000px;
+      background: white;
+      border-radius: 20px;
+      overflow: hidden;
+      box-shadow: 0 0 20px rgba(0,0,0,0.15);
+      animation: fadeInUp 0.7s ease-in-out;
+    }
+
+    .left-panel, .right-panel {
+      flex: 1;
+      padding: 40px;
+    }
+
+    .left-panel {
+      background: #fff;
+    }
+
+    .right-panel {
+      background: #ce75ec;
+      color: white;
+    }
+
+    h2 {
+      margin-top: 0;
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-top: 15px;
+      font-weight: 600;
+    }
+
+    input, textarea {
+      width: 100%;
+      padding: 10px;
+      margin-top: 5px;
+      border: none;
+      border-radius: 8px;
+      font-size: 0.95rem;
+    }
+
+    input[type="email"]:disabled,
+    input[type="tel"]:disabled {
+      background-color: #e0e0e0;
+      cursor: not-allowed;
+    }
+
+    textarea {
+      resize: vertical;
+    }
+
+    .right-panel input,
+    .right-panel textarea {
+      background: #c96be3;
+      color: #fff;
+      border: 1px solid #ffffff55;
+    }
+
+    .btn-group {
+      margin-top: 20px;
+      display: flex;
+      gap: 15px;
+    }
+
+    button {
+      padding: 10px 20px;
+      background: #28a745;
+      color: white;
+      border: none;
+      font-weight: bold;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: background 0.3s ease;
+    }
+
+    button:hover {
+      background: #218838;
+    }
+
+    .error {
+      margin-top: 10px;
+      color: red;
+      font-weight: bold;
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(50px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 768px) {
+      .form-wrapper {
+        flex-direction: column;
+      }
+
+      .left-panel, .right-panel {
+        padding: 25px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div class="form-wrapper">
+  <div class="left-panel">
+    <h2>General Information</h2>
+    <form id="donorForm">
+      <label>Full Name</label>
+      <input type="text" name="fullName" required />
+
+      <label>Date of Birth</label>
+      <input type="date" name="dob" required />
+
+      <label>Email</label>
+      <input type="email" name="email" required disabled />
+
+      <label>Phone</label>
+      <input type="tel" name="phone" required disabled />
+
+      <label>Organization</label>
+      <input type="text" name="orgName" required />
+
+      <label>Current Role</label>
+      <input type="text" name="occupation" required />
+
+      <label>Years of Experience</label>
+      <input type="number" name="experience" min="0" />
+  </div>
+
+  <div class="right-panel">
+    <h2>Contact & Details</h2>
+
+      <label>Past Organizations</label>
+      <textarea name="pastOrgs" placeholder="Comma separated"></textarea>
+
+      <label>Hometown</label>
+      <input type="text" name="hometown" />
+
+      <label>Address</label>
+      <textarea name="address"></textarea>
+
+      <label>Bio / About You</label>
+      <textarea name="bio"></textarea>
+
+      <label>Profile Picture URL</label>
+      <input type="url" name="profilePicUrl" placeholder="https://example.com/image.jpg" />
+
+      <div class="btn-group">
+        <button type="submit" id="saveBtn">Save Profile</button>
+        <button type="button" id="viewProfileBtn" style="display:none;">View Profile</button>
+      </div>
+
+      <p class="error" id="errorMsg"></p>
+    </form>
+  </div>
+</div>
+
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+  import {
+    getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs
+  } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+  import {
+    getAuth, onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCw_7hQeQM3tXsRb3z7SKlW1ARKJL5buGQ",
+    authDomain: "edudonate-e5bc4.firebaseapp.com",
+    projectId: "edudonate-e5bc4",
+    storageBucket: "edudonate-e5bc4.appspot.com",
+    messagingSenderId: "710950970152",
+    appId: "1:710950970152:web:583eec98550dec8728661d"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth();
+
+  const form = document.getElementById("donorForm");
+  const errorMsg = document.getElementById("errorMsg");
+  const viewBtn = document.getElementById("viewProfileBtn");
+
+  let currentUID = null;
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      alert("❌ Please login first to access the donor form.");
+      window.location.href = "login.html"; // Change this if you have a different login URL
+      return;
+    }
+
+    currentUID = user.uid;
+
+    const userDoc = await getDoc(doc(db, "users", currentUID));
+    if (!userDoc.exists()) {
+      disableForm("❌ You are not registered. Please register first as donor.");
+      return;
+    }
+
+    const userData = userDoc.data();
+    if (userData.userType !== "donor") {
+      disableForm("❌ Access denied. Only donors can create a profile.");
+      return;
+    }
+
+    form.email.value = userData.email;
+    form.phone.value = userData.phone;
+
+    const profileRef = doc(db, "profiles", currentUID);
+    const profileSnap = await getDoc(profileRef);
+
+    if (profileSnap.exists()) {
+      const d = profileSnap.data();
+      form.fullName.value = d.fullName || "";
+      form.dob.value = d.dob || "";
+      form.orgName.value = d.orgName || "";
+      form.occupation.value = d.occupation || "";
+      form.experience.value = d.experience || "";
+      form.pastOrgs.value = d.pastOrgs?.join(", ") || "";
+      form.hometown.value = d.hometown || "";
+      form.address.value = d.address || "";
+      form.bio.value = d.bio || "";
+      form.profilePicUrl.value = d.profilePicUrl || "";
+
+      viewBtn.style.display = "inline-block";
+      viewBtn.onclick = () => {
+        window.location.href = `profile.html?uid=${currentUID}`;
+      };
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      errorMsg.textContent = "";
+
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+
+      data.email = userData.email;
+      data.phone = userData.phone;
+      data.userType = "donor";
+      data.createdAt = new Date();
+      data.pastOrgs = data.pastOrgs ? data.pastOrgs.split(",").map(s => s.trim()) : [];
+
+      try {
+        const profilesRef = collection(db, "profiles");
+        const [emailSnap, phoneSnap] = await Promise.all([
+          getDocs(query(profilesRef, where("email", "==", data.email))),
+          getDocs(query(profilesRef, where("phone", "==", data.phone)))
+        ]);
+
+        const duplicate = emailSnap.docs.some(d => d.id !== currentUID) ||
+                          phoneSnap.docs.some(d => d.id !== currentUID);
+
+        if (duplicate) {
+          errorMsg.textContent = "❌ Profile already exists with this email or phone.";
+          return;
+        }
+
+        await setDoc(doc(db, "profiles", currentUID), data);
+        alert("✅ Profile saved successfully!");
+
+        viewBtn.style.display = "inline-block";
+        viewBtn.onclick = () => {
+          window.location.href = `profile.html?uid=${currentUID}`;
+        };
+
+      } catch (err) {
+        console.error(err);
+        errorMsg.textContent = "❌ Error saving profile. Check console.";
+      }
+    });
+  });
+
+  function disableForm(msg) {
+    errorMsg.textContent = msg;
+    Array.from(form.elements).forEach(el => el.disabled = true);
+  }
+</script>
+
+</body>
+</html>

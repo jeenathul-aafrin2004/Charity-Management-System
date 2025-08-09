@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Student Profile Form</title>
+  <style>
+    /* [CSS same as before, no changes] */
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0; padding: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background: linear-gradient(135deg, #c3cfe2, #f5f7fa);
+      height: 100%; overflow: hidden;
+    }
+    .container {
+      height: 100vh; display: flex;
+      justify-content: center; align-items: center; padding: 20px;
+    }
+    .form-wrapper {
+      display: flex; width: 90%; max-width: 850px;
+      height: 90vh; background: white; border-radius: 20px;
+      overflow: hidden; box-shadow: 0 0 20px rgba(0,0,0,0.15);
+      animation: fadeInUp 0.7s ease-in-out;
+    }
+    .form-wrapper form {
+      display: flex; width: 100%; overflow-y: auto;
+    }
+    .left-panel, .right-panel {
+      flex: 1; padding: 30px; overflow-y: auto;
+    }
+    .left-panel { background: #fff; }
+    .right-panel {
+      background: #6f9ceb; color: white;
+    }
+    h2 {
+      margin-top: 0; margin-bottom: 20px;
+    }
+    label {
+      display: block; margin-top: 15px; font-weight: 600;
+    }
+    input, textarea, select {
+      width: 100%; padding: 10px; margin-top: 5px;
+      border: none; border-radius: 8px; font-size: 0.95rem;
+    }
+    input[type="email"]:disabled, input[type="tel"]:disabled {
+      background-color: #e0e0e0; cursor: not-allowed;
+    }
+    textarea { resize: vertical; }
+    .right-panel input, .right-panel textarea, .right-panel select {
+      background: #89aef2; color: #fff;
+      border: 1px solid #ffffff55;
+    }
+    .btn-group {
+      margin-top: 20px; display: flex; gap: 15px; flex-wrap: wrap;
+    }
+    button {
+      padding: 10px 20px; background: #28a745; color: white;
+      border: none; font-weight: bold; border-radius: 6px;
+      cursor: pointer; transition: background 0.3s ease;
+    }
+    button:hover { background: #218838; }
+    .error {
+      margin-top: 10px; color: red; font-weight: bold;
+    }
+    @keyframes fadeInUp {
+      from { opacity: 0; transform: translateY(50px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+    @media (max-width: 768px) {
+      .form-wrapper { flex-direction: column; height: auto; max-height: none; }
+      .form-wrapper form { flex-direction: column; }
+      .left-panel, .right-panel { padding: 20px; }
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+  <div class="form-wrapper">
+    <form id="studentForm">
+      <div class="left-panel">
+        <h2>Student Information</h2>
+        <label>Full Name</label>
+        <input type="text" name="fullName" required />
+        <label>Date of Birth</label>
+        <input type="date" name="dob" required />
+        <label>Email</label>
+        <input type="email" name="email" required disabled />
+        <label>Phone</label>
+        <input type="tel" name="phone" required disabled />
+        <label>Parent/Guardian Name</label>
+        <input type="text" name="guardianName" required />
+        <label>Parent/Guardian Phone</label>
+        <input type="tel" name="guardianPhone" required />
+        <label>Organization Name (if you're orphan)</label>
+        <input type="text" name="orgName" />
+        <label>City</label>
+        <input type="text" name="city" required />
+        <label>Address</label>
+        <textarea name="address"></textarea>
+        <label>Course</label>
+        <input type="text" name="course" required />
+        <label>College</label>
+        <input type="text" name="college" required />
+      </div>
+
+      <div class="right-panel">
+        <h2>More Details</h2>
+        <label>Achievements</label>
+        <textarea name="achievements" placeholder="Comma separated list"></textarea>
+        <label>Bio / About You</label>
+        <textarea name="bio"></textarea>
+        <label>Disability</label>
+        <select name="disability" required>
+          <option value="">-- Select --</option>
+          <option value="No">No</option>
+          <option value="Yes">Yes</option>
+        </select>
+        <label>Profile Picture URL</label>
+        <input type="url" name="profilePicUrl" placeholder="https://example.com/image.jpg" />
+
+        <div class="btn-group">
+          <button type="submit" id="saveBtn">Save Profile</button>
+          <button type="button" id="viewProfileBtn" style="display:none;">View Profile</button>
+        </div>
+
+        <p class="error" id="errorMsg"></p>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Firebase Script -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+  import {
+    getFirestore, doc, setDoc, getDoc, collection, query, where, getDocs
+  } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+  import {
+    getAuth, onAuthStateChanged
+  } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyCw_7hQeQM3tXsRb3z7SKlW1ARKJL5buGQ",
+    authDomain: "edudonate-e5bc4.firebaseapp.com",
+    projectId: "edudonate-e5bc4",
+    storageBucket: "edudonate-e5bc4.appspot.com",
+    messagingSenderId: "710950970152",
+    appId: "1:710950970152:web:583eec98550dec8728661d"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+  const auth = getAuth();
+
+  const form = document.getElementById("studentForm");
+  const errorMsg = document.getElementById("errorMsg");
+  const viewBtn = document.getElementById("viewProfileBtn");
+
+  let currentUID = null;
+
+  onAuthStateChanged(auth, async (user) => {
+    if (!user) {
+      alert("❌ Please login first to access the student form.");
+      window.location.href = "login.html";
+      return;
+    }
+
+    currentUID = user.uid;
+
+    const userDoc = await getDoc(doc(db, "users", currentUID));
+    if (!userDoc.exists()) {
+      disableForm("❌ You are not registered. Please register first as student.");
+      return;
+    }
+
+    const userData = userDoc.data();
+    if (userData.userType !== "student") {
+      disableForm("❌ Access denied. Only students can access this form.");
+      return;
+    }
+
+    form.email.value = userData.email;
+    form.phone.value = userData.phone;
+
+    const profileRef = doc(db, "student_profiles", currentUID);
+    const profileSnap = await getDoc(profileRef);
+
+    if (profileSnap.exists()) {
+      const d = profileSnap.data();
+      form.fullName.value = d.fullName || "";
+      form.dob.value = d.dob || "";
+      form.city.value = d.city || "";
+      form.address.value = d.address || "";
+      form.course.value = d.course || "";
+      form.college.value = d.college || "";
+      form.bio.value = d.bio || "";
+      form.achievements.value = Array.isArray(d.achievements) ? d.achievements.join(", ") : "";
+      form.profilePicUrl.value = d.profilePicUrl || "";
+      form.guardianName.value = d.guardianName || "";
+      form.guardianPhone.value = d.guardianPhone || "";
+      form.orgName.value = d.orgName || "";
+      form.disability.value = d.disability || "";
+
+      viewBtn.style.display = "inline-block";
+      viewBtn.onclick = () => {
+        window.location.href = `studentprofile.html?uid=${currentUID}`;
+      };
+    }
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+      errorMsg.textContent = "";
+
+      const formData = new FormData(form);
+      const data = Object.fromEntries(formData.entries());
+
+      data.email = userData.email;
+      data.phone = userData.phone;
+      data.userType = "student";
+      data.createdAt = new Date();
+      data.achievements = data.achievements ? data.achievements.split(",").map(s => s.trim()) : [];
+
+      try {
+        const studentRef = collection(db, "student_profiles");
+        const [emailSnap, phoneSnap] = await Promise.all([
+          getDocs(query(studentRef, where("email", "==", data.email))),
+          getDocs(query(studentRef, where("phone", "==", data.phone)))
+        ]);
+
+        const duplicate = emailSnap.docs.some(d => d.id !== currentUID) ||
+                          phoneSnap.docs.some(d => d.id !== currentUID);
+
+        if (duplicate) {
+          errorMsg.textContent = "❌ Profile already exists with this email or phone.";
+          return;
+        }
+
+        await setDoc(doc(db, "student_profiles", currentUID), data);
+        alert("✅ Profile saved successfully!");
+        viewBtn.style.display = "inline-block";
+        viewBtn.onclick = () => {
+          window.location.href = `studentprofile.html?uid=${currentUID}`;
+        };
+
+      } catch (err) {
+        console.error(err);
+        errorMsg.textContent = "❌ Error saving profile. Check console.";
+      }
+    });
+  });
+
+  function disableForm(msg) {
+    errorMsg.textContent = msg;
+    Array.from(form.elements).forEach(el => el.disabled = true);
+  }
+</script>
+</body>
+</html>

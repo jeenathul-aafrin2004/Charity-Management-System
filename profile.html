@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Donor Profile</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: #f9f9f9;
+      color: #333;
+    }
+
+    /* ----------- Navigation Bar Styles ----------- */
+    .navbar {
+      background: linear-gradient(to right, #f46b8a, #516c93);
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 40px;
+    }
+
+    .navbar .logo {
+      font-size: 1.5rem;
+      font-weight: bold;
+    }
+
+    .navbar ul {
+      list-style: none;
+      display: flex;
+      gap: 30px;
+      margin: 0;
+      padding: 0;
+    }
+
+    .navbar ul li {
+      display: inline;
+    }
+
+    .navbar ul li a {
+      color: white;
+      text-decoration: none;
+      font-weight: bold;
+      transition: color 0.3s;
+    }
+
+    .navbar ul li a:hover {
+      color: #ffdede;
+    }
+
+    /* ----------- Dashboard Button ----------- */
+    .dashboard-btn-container {
+      text-align: right;
+      padding: 10px 40px 0;
+    }
+
+    .dashboard-btn {
+      padding: 8px 16px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: background-color 0.3s;
+      text-decoration: none;
+      display: inline-block;
+    }
+
+    .dashboard-btn:hover {
+      background-color: #0056b3;
+    }
+
+    /* ----------- Page Header ----------- */
+    h1 {
+      text-align: center;
+      font-size: 2.5rem;
+      margin: 30px 0 10px;
+    }
+
+    .subtitle {
+      text-align: center;
+      font-size: 1.1rem;
+      color: #666;
+      margin-bottom: 40px;
+    }
+
+    /* ----------- Profile Container ----------- */
+    .container {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 40px;
+      max-width: 1100px;
+      margin: auto;
+      background-color: #fff;
+      padding: 40px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.08);
+    }
+
+    .column {
+      flex: 1 1 250px;
+      min-width: 250px;
+    }
+
+    .profile-pic {
+      text-align: center;
+    }
+
+    .profile-pic img {
+      width: 150px;
+      height: 150px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin-bottom: 20px;
+    }
+
+    .column h3 {
+      font-size: 1.2rem;
+      margin-bottom: 15px;
+      text-align: center;
+    }
+
+    .details p,
+    .about p {
+      margin: 8px 0;
+      font-size: 0.95rem;
+      line-height: 1.5;
+    }
+
+    .details p strong {
+      display: inline-block;
+      width: 110px;
+    }
+
+    .error {
+      text-align: center;
+      color: red;
+      font-weight: bold;
+    }
+
+    .update-btn {
+      margin-top: 20px;
+      padding: 10px 20px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      display: block;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .navbar {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .navbar ul {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .details p strong {
+        width: auto;
+      }
+
+      .dashboard-btn-container {
+        text-align: center;
+        padding: 10px 20px 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav class="navbar">
+    <div class="logo">HopeNest</div>
+    <ul>
+      <li><a href="home.css">Home</a></li>
+      <li><a href="aboutus.html">About</a></li>
+      <li><a href="feature.html">Features</a></li>
+      <li><a href="login1.html">Login</a></li>
+      <li><a href="register.html">Register</a></li>
+    </ul>
+  </nav>
+
+  <!-- Dashboard Button -->
+  <div class="dashboard-btn-container">
+    <a href="dashboard-donor.html" class="dashboard-btn">🔍 View Your Dashboard</a>
+  </div>
+
+  <!-- Page Header -->
+  <h1>Profile</h1>
+  <p class="subtitle">I'm a creative donor on HopeNest</p>
+
+  <!-- Profile Content -->  
+  <div class="container" id="profileBox">
+    <p>Loading profile...</p>
+  </div>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
+    import {
+      getFirestore,
+      doc,
+      getDoc
+    } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+    import {
+      getAuth,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCw_7hQeQM3tXsRb3z7SKlW1ARKJL5buGQ",
+      authDomain: "edudonate-e5bc4.firebaseapp.com",
+      projectId: "edudonate-e5bc4",
+      storageBucket: "edudonate-e5bc4.appspot.com",
+      messagingSenderId: "710950970152",
+      appId: "1:710950970152:web:583eec98550dec8728661d",
+      measurementId: "G-QNZ692FRRM"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth();
+    const profileBox = document.getElementById("profileBox");
+    const urlParams = new URLSearchParams(window.location.search);
+    let uid = urlParams.get("uid");
+
+    function sanitizeUrl(url) {
+      try {
+        if (!url || typeof url !== 'string') return 'https://via.placeholder.com/150';
+        const u = new URL(url);
+        return u.href;
+      } catch {
+        return 'https://via.placeholder.com/150';
+      }
+    }
+
+    function renderProfile(data, uid) {
+      const safeImageUrl = sanitizeUrl(data.profilePicUrl);
+      profileBox.innerHTML = `
+        <div class="column about">
+          <h3>About me</h3>
+          <p>${data.bio || 'No bio provided.'}</p>
+          <p><strong>Occupation:</strong> ${data.occupation || 'N/A'}</p>
+          <p><strong>Experience:</strong> ${data.experience || 0} years</p>
+          <p><strong>Past Orgs:</strong> ${Array.isArray(data.pastOrgs) ? data.pastOrgs.join(', ') : 'N/A'}</p>
+        </div>
+
+        <div class="column profile-pic">
+          <img src="${safeImageUrl}" alt="Profile Picture">
+          <h3>${data.fullName}</h3>
+          <button class="update-btn" onclick="window.location.href='donorprofileform.html?uid=${uid}'">Update Profile</button>
+        </div>
+
+        <div class="column details">
+          <h3>Details</h3>
+          <p><strong>Email:</strong> ${data.email}</p>
+          <p><strong>Phone:</strong> ${data.phone}</p>
+          <p><strong>Date of Birth:</strong> ${data.dob}</p>
+          <p><strong>Organization:</strong> ${data.orgName}</p>
+          <p><strong>Hometown:</strong> ${data.hometown}</p>
+          <p><strong>Address:</strong> ${data.address}</p>
+        </div>
+      `;
+    }
+
+    function showError(msg) {
+      profileBox.innerHTML = `<p class="error">❌ ${msg}</p>`;
+    }
+
+    if (uid) {
+      const userDocRef = doc(db, "profiles", uid);
+      getDoc(userDocRef).then((docSnap) => {
+        if (!docSnap.exists()) {
+          showError("Profile not found.");
+        } else {
+          renderProfile(docSnap.data(), uid);
+        }
+      }).catch((err) => {
+        showError("Error loading profile.");
+        console.error(err);
+      });
+    } else {
+      onAuthStateChanged(auth, async (user) => {
+        if (!user) {
+          showError("No UID in URL and user not logged in.");
+          return;
+        }
+        const docSnap = await getDoc(doc(db, "profiles", user.uid));
+        if (!docSnap.exists()) {
+          showError("Profile not found.");
+        } else {
+          renderProfile(docSnap.data(), user.uid);
+        }
+      });
+    }
+  </script>
+
+</body>
+</html>

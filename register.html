@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Register | EduDonate</title>
+
+  <!-- Firebase SDKs -->
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore-compat.js"></script>
+
+  <!-- Firebase Config -->
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCw_7hQeQM3tXsRb3z7SKlW1ARKJL5buGQ",
+      authDomain: "edudonate-e5bc4.firebaseapp.com",
+      projectId: "edudonate-e5bc4",
+      storageBucket: "edudonate-e5bc4.appspot.com",
+      messagingSenderId: "710950970152",
+      appId: "1:710950970152:web:583eec98550dec8728661d",
+      measurementId: "G-QNZ692FRRM"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+  </script>
+
+  <link href="https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap" rel="stylesheet">
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Open Sans', sans-serif;
+    }
+
+    body, html {
+      height: 100%;
+      width: 100%;
+      background: url('https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&w=1470&q=80') center/cover no-repeat;
+      position: relative;
+    }
+
+    body::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 100%;
+      width: 100%;
+      background-image: url('https://images.unsplash.com/photo-1584697964190-ffb5f9ee45c4?auto=format&fit=crop&w=1470&q=80');
+      background-size: cover;
+      background-position: center;
+      backdrop-filter: blur(15px);
+      filter: blur(15px);
+      z-index: -1;
+      opacity: 0.8;
+    }
+
+    .navbar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 25px 60px;
+      background: transparent;
+    }
+
+    .logo {
+      color: black;
+      font-size: 1.6rem;
+      font-weight: bold;
+    }
+
+    .nav-links {
+      list-style: none;
+      display: flex;
+      gap: 30px;
+    }
+
+    .nav-links li a {
+      color: black;
+      text-decoration: none;
+      font-weight: 500;
+      padding-bottom: 3px;
+      transition: all 0.2s ease;
+    }
+
+    .nav-links li a.active,
+    .nav-links li a:hover {
+      color: rgb(132, 49, 100);
+      border-bottom: 2px solid rgb(133, 41, 107);
+    }
+
+    .main-content {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 60px;
+      height: calc(100% - 80px);
+    }
+
+    .mission-text {
+      width: 50%;
+      color: black;
+      animation: slideInLeft 1.2s ease-out;
+    }
+
+    .mission-text h1 {
+      font-size: 2.2rem;
+      margin-bottom: 20px;
+    }
+
+    .mission-text p {
+      font-size: 1.1rem;
+      max-width: 600px;
+    }
+
+    .register-box {
+      width: 400px;
+      padding: 30px;
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(25px);
+      border-radius: 15px;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.2);
+      animation: slideInRight 1.2s ease-out;
+      color: black;
+    }
+
+    .register-box h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-weight: 600;
+    }
+
+    input, select, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 1rem;
+    }
+
+    button {
+      background-color: #6C63FF;
+      color: white;
+      font-weight: bold;
+      border: none;
+      cursor: pointer;
+      margin-top: 20px;
+      transition: background-color 0.3s ease;
+    }
+
+    button:hover {
+      background-color: #4f47c4;
+    }
+
+    #error-message {
+      color: red;
+      font-size: 0.9rem;
+      text-align: center;
+      margin-top: 10px;
+    }
+
+    .link {
+      text-align: center;
+      margin-top: 15px;
+      font-size: 0.95rem;
+    }
+
+    .link a {
+      color: #6C63FF;
+      text-decoration: none;
+    }
+
+    @keyframes slideInLeft {
+      from {
+        transform: translateX(-60px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+
+    @keyframes slideInRight {
+      from {
+        transform: translateX(60px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <header class="navbar">
+    <div class="logo">EduDonate</div>
+    <nav>
+      <ul class="nav-links">
+        <li><a href="homepage.html">Home</a></li>
+        <li><a href="aboutus.html">About Us</a></li>
+        <li><a href="feature.html">Features</a></li>
+        <li><a href="login1.html">Login</a></li>
+        <li><a href="#" class="active">Register</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="main-content">
+    <section class="mission-text">
+      <h1>Empowering Futures Through Transparent Donations</h1>
+      <p>Our mission is to bridge the gap between compassionate donors and deserving students by offering a secure, transparent, and impactful donation platform.</p>
+    </section>
+
+    <section class="register-box">
+      <h2>Register</h2>
+      <form id="registerForm">
+        <input type="text" id="fullName" placeholder="Full Name" required>
+        <input type="text" id="orgName" placeholder="Organization Name (if any)">
+        <input type="text" id="guardianName" placeholder="Parent/Guardian Name" required>
+        <input type="tel" id="phone" placeholder="Phone Number" required pattern="[0-9]{10}">
+        <input type="email" id="email" placeholder="Email" required>
+        <input type="password" id="password" placeholder="Password (min 6 chars)" required>
+        <select id="userType" required>
+          <option value="">Select User Type</option>
+          <option value="donor">Donor</option>
+          <option value="student">Student</option>
+        </select>
+        <button type="submit">Register</button>
+        <p id="error-message"></p>
+      </form>
+      <div class="link">
+        Already have an account? <a href="login.html">Login here</a>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    document.getElementById("registerForm").addEventListener("submit", function (e) {
+      e.preventDefault();
+
+      const fullName = document.getElementById("fullName").value;
+      const orgName = document.getElementById("orgName").value;
+      const guardianName = document.getElementById("guardianName").value;
+      const phone = document.getElementById("phone").value;
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const userType = document.getElementById("userType").value;
+
+      if (phone.length !== 10) {
+        document.getElementById("error-message").innerText = "Phone number must be 10 digits.";
+        return;
+      }
+
+      auth.createUserWithEmailAndPassword(email, password)
+        .then((userCredential) => {
+          const user = userCredential.user;
+          return db.collection("users").doc(user.uid).set({
+            fullName,
+            orgName,
+            guardianName,
+            phone,
+            email,
+            userType
+          });
+        })
+        .then(() => {
+          alert("Registration successful! Please login to continue.");
+          window.location.href = "login.html";
+        })
+        .catch((error) => {
+          document.getElementById("error-message").innerText = error.message;
+        });
+    });
+  </script>
+
+</body>
+</html>

@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Donate to Request</title>
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore-compat.js"></script>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyCw_7hQeQM3tXsRb3z7SKlW1ARKJL5buGQ",
+      authDomain: "edudonate-e5bc4.firebaseapp.com",
+      projectId: "edudonate-e5bc4",
+      storageBucket: "edudonate-e5bc4.firebasestorage.app",
+      messagingSenderId: "710950970152",
+      appId: "1:710950970152:web:583eec98550dec8728661d",
+      measurementId: "G-QNZ692FRRM"
+    };
+    firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.firestore();
+  </script>
+
+  <style>
+    body { font-family: Arial, sans-serif; padding: 30px; background-color: #f0f0f0; }
+    .container {
+      background: white;
+      padding: 25px;
+      border-radius: 10px;
+      max-width: 600px;
+      margin: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    h2 { color: #333; }
+    input, button {
+      width: 100%;
+      padding: 12px;
+      margin-top: 10px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #4caf50;
+      color: white;
+      border: none;
+      font-weight: bold;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    .success, .error {
+      font-weight: bold;
+      text-align: center;
+      margin-top: 15px;
+    }
+    .success { color: green; }
+    .error { color: red; }
+    .student-info {
+      background-color: #f9f9f9;
+      padding: 10px;
+      border-radius: 5px;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Donate to Request</h2>
+    <div id="requestDetails">Loading request...</div>
+
+    <form id="donationForm" style="display:none;">
+      <input type="number" id="donationAmount" placeholder="Enter donation amount" required />
+      <button type="submit">Donate</button>
+    </form>
+
+    <div class="success" id="successMessage"></div>
+    <div class="error" id="errorMessage"></div>
+  </div>
+
+  <script>
+    const params = new URLSearchParams(window.location.search);
+    const requestId = params.get("id");
+    if (!requestId) {
+  document.getElementById("requestDetails").innerHTML = "<p>❌ No request ID provided in the URL.</p>";
+  document.getElementById("donationForm").style.display = "none";
+  throw new Error("No request ID provided.");
+}
+
+
+    if (!requestId) {
+      document.getElementById("requestDetails").innerText = "❌ No request ID provided.";
+    }
+
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) return window.location.href = "login.html";
+
+      try {
+        const requestRef = db.collection("requests").doc(requestId);
+        const doc = await requestRef.get();
+
+        if (!doc.exists) {
+          document.getElementById("requestDetails").innerHTML = "<p>❌ Request not found.</p>";
+          return;
+        }
+
+        const requestData = doc.data();
+        const donated = requestData.donated_amount || 0;
+        const remaining = requestData.amount - donated;
+
+        let studentInfo = {
+          fullName: requestData.fullName || "N/A",
+          email: requestData.requester_email || "N/A",
+          orgName: requestData.orgName || "N/A",
+          phone: requestData.phone || "N/A"
+        };
+
+        // Try fetching student details from users collection
+        if (requestData.requester_email) {
+          const userSnap = await db.collection("users")
+            .where("email", "==", requestData.requester_email)
+            .limit(1)
+            .get();
+
+          if (!userSnap.empty) {
+            const userData = userSnap.docs[0].data();
+            studentInfo = {
+              fullName: userData.fullName || studentInfo.fullName,
+              email: userData.email || studentInfo.email,
+              orgName: userData.orgName || studentInfo.orgName,
+              phone: userData.phone || studentInfo.phone
+            };
+          }
+        }
+
+        document.getElementById("requestDetails").innerHTML = `
+          <p><strong>📌 Title:</strong> ${requestData.title}</p>
+          <p><strong>📝 Description:</strong> ${requestData.description}</p>
+          <p><strong>💰 Amount Needed:</strong> ₹${requestData.amount}</p>
+          <p><strong>💸 Amount Remaining:</strong> ₹${remaining}</p>
+
+          <div class="student-info">
+            <p><strong>👤 Student Name:</strong> ${studentInfo.fullName}</p>
+            <p><strong>📧 Email:</strong> ${studentInfo.email}</p>
+            <p><strong>🏫 Organization:</strong> ${studentInfo.orgName}</p>
+            <p><strong>📞 Phone:</strong> ${studentInfo.phone}</p>
+          </div>
+        `;
+
+        document.getElementById("donationForm").style.display = "block";
+
+        document.getElementById("donationForm").addEventListener("submit", async function (e) {
+          e.preventDefault();
+          const donationAmount = parseFloat(document.getElementById("donationAmount").value);
+
+          if (isNaN(donationAmount) || donationAmount <= 0) {
+            alert("Please enter a valid amount.");
+            return;
+          }
+
+          try {
+            await db.collection("donations").add({
+              donor_email: user.email,
+              request_id: requestId,
+              amount: donationAmount,
+              timestamp: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            await requestRef.update({
+              donated_amount: firebase.firestore.FieldValue.increment(donationAmount)
+            });
+
+            const updatedDoc = await requestRef.get();
+            const updatedData = updatedDoc.data();
+            const newRemaining = updatedData.amount - (updatedData.donated_amount || 0);
+            if (newRemaining <= 0) {
+              await requestRef.update({ status: "donated" });
+            }
+
+            document.getElementById("successMessage").innerText = "✅ Thank you for your donation!";
+            document.getElementById("donationForm").reset();
+
+          } catch (error) {
+            console.error("Donation failed:", error);
+            document.getElementById("errorMessage").innerText = "❌ Donation failed. Try again.";
+          }
+        });
+
+      } catch (err) {
+        console.error("Error loading request:", err);
+        document.getElementById("errorMessage").innerText = "❌ Failed to load request.";
+      }
+    });
+  </script>
+</body>
+</html>

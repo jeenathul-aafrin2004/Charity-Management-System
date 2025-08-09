@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>HopeNest Features</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      overflow-x: hidden;
+    }
+
+    .navbar {
+      width: 100%;
+      background: linear-gradient(to right, #fe698c, #466b8c);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px 40px;
+      position: fixed;
+      top: 0;
+      z-index: 1000;
+      box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    }
+
+    .navbar .logo {
+      font-size: 22px;
+      font-weight: bold;
+      color: white;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 25px;
+      align-items: center;
+    }
+
+    .nav-links a, .dropdown-toggle {
+      text-decoration: none;
+      font-size: 16px;
+      color: white;
+      font-weight: bold;
+      cursor: pointer;
+      transition: color 0.3s ease;
+    }
+
+    .nav-links a:hover, .dropdown-toggle:hover {
+      color: #ffd700;
+    }
+
+    .dropdown {
+      position: relative;
+    }
+
+    .dropdown-content {
+      position: absolute;
+      top: 35px;
+      right: 0;
+      background-color: white;
+      border-radius: 6px;
+      box-shadow: 0 8px 16px rgba(0, 0, 0, 0.1);
+      display: none;
+      flex-direction: column;
+      min-width: 160px;
+      z-index: 2000;
+    }
+
+    .dropdown-content.show {
+      display: flex;
+    }
+
+    .dropdown-content a {
+      color: black;
+      padding: 10px 15px;
+      text-decoration: none;
+      display: block;
+      font-size: 14px;
+      transition: background 0.2s ease;
+    }
+
+    .dropdown-content a:hover {
+      background-color: #f2f2f2;
+      color: black;
+    }
+
+    .half-background {
+      position: relative;
+      width: 100%;
+      min-height: 100vh;
+      padding: 100px 40px 60px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: linear-gradient(to bottom, white 50%, #b2e0ea 50%);
+    }
+
+    .slider-container {
+      width: 90%;
+      max-width: 1200px;
+      position: relative;
+    }
+
+    .features-track {
+      display: flex;
+      transition: transform 0.4s ease-in-out;
+    }
+
+    .card {
+      background: white;
+      width: 240px;
+      margin: 0 15px;
+      padding: 25px 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+      text-align: center;
+      flex-shrink: 0;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .card:hover {
+      transform: translateY(-10px) scale(1.05);
+      box-shadow: 0 15px 25px rgba(0, 0, 0, 0.3);
+    }
+
+    .icon-circle {
+      background-color: #f76c5e;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      margin: 0 auto 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: transform 0.3s ease;
+    }
+
+    .card:hover .icon-circle {
+      transform: scale(1.2);
+    }
+
+    .icon-circle img {
+      width: 30px;
+      height: 30px;
+      filter: invert(1);
+    }
+
+    .title {
+      font-weight: bold;
+      font-size: 18px;
+      margin-bottom: 10px;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .desc {
+      font-size: 14px;
+      color: #555;
+      line-height: 1.6;
+    }
+
+    .slider-buttons {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+      max-width: 1200px;
+      margin: 20px 0;
+    }
+
+    .btn {
+      background-color: #f76c5e;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      font-size: 20px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background-color 0.3s;
+    }
+
+    .btn:hover {
+      background-color: #652c56;
+    }
+
+    @media (max-width: 768px) {
+      .features-track {
+        flex-direction: column;
+        align-items: center;
+      }
+
+      .card {
+        width: 80%;
+        margin: 15px 0;
+      }
+
+      .slider-buttons {
+        justify-content: center;
+        gap: 15px;
+      }
+
+      .navbar {
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      .nav-links {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 15px;
+      }
+
+      .dropdown-content {
+        right: auto;
+        left: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="navbar">
+    <div class="logo">HopeNest</div>
+    <div class="nav-links">
+      <a href="home.html">Home</a>
+      <a href="aboutus.html">About</a>
+      <a href="#">Features</a>
+      <a href="login1.html">Login</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="half-background">
+    <div class="slider-buttons">
+      <button class="btn" onclick="moveSlide(-1)">&#8592;</button>
+      <button class="btn" onclick="moveSlide(1)">&#8594;</button>
+    </div>
+
+    <div class="slider-container">
+      <div class="features-track" id="track">
+        <div class="card">
+          <div class="icon-circle">
+            <img src="https://img.icons8.com/ios-filled/50/ffffff/verified-badge.png" alt="Verified">
+          </div>
+          <div class="title">Verified Requests</div>
+          <div class="desc">Every student request is reviewed to ensure authenticity and genuine need.</div>
+        </div>
+
+        <div class="card">
+          <div class="icon-circle">
+            <img src="https://img.icons8.com/ios-filled/50/ffffff/receipt-dollar.png" alt="Transparent">
+          </div>
+          <div class="title">Transparent Giving</div>
+          <div class="desc">Track how your donations are used with clear breakdowns and updates.</div>
+        </div>
+
+        <div class="card">
+          <div class="icon-circle">
+            <img src="https://img.icons8.com/ios-filled/50/ffffff/activity-history.png" alt="Tracking">
+          </div>
+          <div class="title">Secure Donations</div>
+          <div class="desc">Donations are handled safely and linked only to verified students and their needs.</div>
+        </div>
+
+        <div class="card">
+          <div class="icon-circle">
+            <img src="https://img.icons8.com/ios-filled/50/ffffff/report-card.png" alt="Reports">
+          </div>
+          <div class="title">Student-Donor Messaging</div>
+          <div class="desc">Allows meaningful one-way or safe moderated messages from donors to students post-donation.</div>
+        </div>
+
+        <div class="card">
+          <div class="icon-circle">
+            <img src="https://img.icons8.com/ios-filled/50/ffffff/user-shield.png" alt="Roles">
+          </div>
+          <div class="title">Secure Access</div>
+          <div class="desc">Separate dashboards and privileges for students and donors for safe interaction.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const track = document.getElementById('track');
+    let position = 0;
+    const cardWidth = 270;
+    const maxScroll = cardWidth * 2;
+
+    function moveSlide(dir) {
+      position += dir * cardWidth;
+      if (position > 0) position = 0;
+      if (position < -maxScroll) position = -maxScroll;
+      track.style.transform = `translateX(${position}px)`;
+    }
+
+    function toggleDropdown() {
+      document.getElementById("dropdownMenu").classList.toggle("show");
+    }
+
+    window.onclick = function(event) {
+      if (!event.target.matches('.dropdown-toggle')) {
+        const dropdown = document.getElementById("dropdownMenu");
+        if (dropdown.classList.contains('show')) {
+          dropdown.classList.remove('show');
+        }
+      }
+    }
+  </script>
+
+</body>
+</html>

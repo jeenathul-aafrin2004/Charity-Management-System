@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>EduDonate – Help Students</title>
+  <link rel="stylesheet" href="home.css"> 
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+</head>
+<body>
+
+  <header class="navbar">
+    <div class="logo"> HopeNest</div>
+    <nav>
+      <ul>
+        <li><a href="#">Home</a></li>
+        <li><a href="aboutus.html">About</a></li>
+        <li><a href="feature.html">Features</a></li> 
+        <li><a href="login1.html">Login</a></li>
+        <li><a href="register.html">Register</a></li>
+      </ul>
+    </nav>   
+  </header>
+
+  <section class="hero">
+    <div class="hero-content">
+      <h1> HopeNest - Nurturing Orphans. Empowering Dreams.</h1>
+      <p>Make a Difference | Donate to Needs | Transparent Giving</p>
+    </div>
+  </section>
+
+  <script>
+    const images = [
+      'images/bg1.webp',
+      'images/bg2.jpg',
+      'images/bg3.jpg',
+      'images/bg4.jpg'
+    ];
+
+    let current = 0;
+    const hero = document.querySelector('.hero');
+
+    function changeBackground() {
+      hero.style.backgroundImage = `url('${images[current]}')`;
+      current = (current + 1) % images.length;
+    }
+
+    changeBackground(); 
+    setInterval(changeBackground, 3000); 
+  </script>
+
+</body>
+</html>
